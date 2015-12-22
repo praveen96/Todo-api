@@ -5,21 +5,6 @@ var db = require('./db.js');
 
 var app = express();
 var PORT = process.env.PORT || 3000;
-/*var todos = [{
-	id: 1,
-	description: 'do some work',
-	completed: false,
-},
-{
-	id: 2,
-	description: 'stop thinking',
-	completed: false
-},
-{
-	id: 3,
-	description: 'browse fb',
-	completed: true
-}];*/
 var todoNextID = 1;
 var todos = [];
 
@@ -49,50 +34,31 @@ app.get('/todos', function(req, res) {
 			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
 		});
 	}
-	//res.json(todos);
+
 	res.json(filteredTodos);
 });
 
 app.get('/todos/:id', function(req, res) {
-	//2nd argument is base
 	var todoID = parseInt(req.params.id, 10);
 
-	/*var matchedTODO;
-
-	todos.forEach(function (todo) {
-		if(todo.id === todoID)
+	db.todo.findById(todoID).then(function (todo) {
+		// !! -> taking a value that's not a boolean and converting it into it's truthy version
+		// e.g. if todo is an array/object and is equal to null. then !!(null) = !(false) = boolean true
+		if(!!todo)
 		{
-			matchedTODO = todo;
+			res.json(todo.toJSON());
 		}
-	});*/
-
-	var matchedTODO = _.findWhere(todos, {
-		id: todoID
+		else
+		{
+			res.status(404).send();
+		}
+	}, function (error) {
+		res.status(500).send();
 	});
-
-	if (matchedTODO) {
-		res.json(matchedTODO);
-	} else {
-		res.status(404).send('Unable to find todo!');
-	}
-
-	res.send('Asking for todo with id of ' + req.params.id);
 });
 
 app.post('/todos', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
-
-	/*if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-		return res.status(404).send();
-	}
-	body.description = body.description.trim();
-	body.id = todoNextID;
-	todoNextID++;
-	todos.push(body);
-
-	console.log('description ' + body.description);
-
-	res.send(body);*/
 
 	console.log("aya " + db.hasOwnProperty('todo'));
 	
@@ -153,7 +119,3 @@ db.sequelize.sync().then(function() {
 		console.log('Express listening on port ' + PORT + '!');
 	});
 });
-
-/*app.listen(PORT, function () {
-	console.log('Express listening on port ' + PORT + '!');
-});*/
