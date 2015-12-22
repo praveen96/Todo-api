@@ -100,7 +100,7 @@ app.put('/todos/:id', function(req, res) {
 		attributes.completed = body.completed;
 	}
 
-	if (body.hasOwnProperty('description')) {
+	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
 		attributes.description = body.description;
 	}
 
