@@ -101,7 +101,10 @@ app.put('/todos/:id', function(req, res) {
 	}
 
 	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+		// not adding the last 2 checks in this if was causing heroku to succeed even if description was passed to update with a boolean
 		attributes.description = body.description;
+	} else if (body.hasOwnProperty('description')) {
+		return res.status(404).send();
 	}
 
 	db.todo.findById(todoID).then(function(todo) {
