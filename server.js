@@ -60,7 +60,7 @@ app.get('/todos/:id', function(req, res) {
 app.post('/todos', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 
-	console.log("aya " + db.hasOwnProperty('todo'));
+	//console.log("aya " + db.hasOwnProperty('todo'));
 
 	db.todo.create(body).then(function(todo) {
 		res.json(todo.toJSON());
@@ -123,6 +123,16 @@ app.put('/todos/:id', function(req, res) {
 	}, function(error) {
 		res.status(500).send();
 	})
+});
+
+app.post('/users', function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	db.user.create(body).then(function (user) {
+		res.json(user.toJSON());
+	}, function(error) {
+		res.status(400).json(error);
+	});
 });
 
 db.sequelize.sync().then(function() {
