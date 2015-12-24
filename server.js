@@ -18,8 +18,12 @@ app.get('/', function(req, res) {
 
 app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var query = req.query;
-	var where = {};
+	//var where = {};
 
+	var where = {
+		userId: req.user.get('id')
+	};
+	
 	var filteredTodos = todos;
 
 	if (query.hasOwnProperty('completed') && query.completed === 'true') {
@@ -46,9 +50,15 @@ app.get('/todos', middleware.requireAuthentication, function(req, res) {
 app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
 
-	db.todo.findById(todoID).then(function(todo) {
+	//db.todo.findById(todoID).then(function(todo) {
 		// !! -> taking a value that's not a boolean and converting it into it's truthy version
 		// e.g. if todo is an array/object and is equal to null. then !!(null) = !(false) = boolean true
+	db.todo.findOne({
+		where: {
+			id: todoID,
+			userId: req.user.get('id')
+		}
+	}).then(function(todo) {
 		if (!!todo) {
 			res.json(todo.toJSON());
 		} else {
@@ -81,7 +91,8 @@ app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 
 	db.todo.destroy({
 		where: {
-			id: todoID
+			id: todoID,
+			userId: req.user.get('id')
 		}
 	}).then(function(rowsDeleted) {
 		if (rowsDeleted === 0) {
@@ -105,23 +116,31 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 
 	if (body.hasOwnProperty('completed')) {
 		attributes.completed = body.completed;
-	} else if (body.hasOwnProperty('description')) {
+	} /*else if (body.hasOwnProperty('description')) {
 		return res.status(400).send();
-	}
+	}*/
 
 	if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
 		// not adding the last 2 checks in this if was causing heroku to succeed even if description was passed to update with a boolean
 		attributes.description = body.description;
 	} else if (body.hasOwnProperty('description')) {
+		console.log("else if me !!!!");
 		return res.status(400).send();
 	}
 
-	db.todo.findById(todoID).then(function(todo) {
+	//db.todo.findById(todoID).then(function(todo) {
+	db.todo.findOne({
+		where: {
+			id: todoID,
+			userId: req.user.get('id')
+		}
+	}).then(function(todo) {
 		if (todo) {
 			todo.update(attributes).then(function(todo) {
 				res.json(todo.toJSON());
 			}, function(error) {
 				//400 -> invalid syntax
+				console.log("hereeeeeee !!!!");
 				res.status(400).json(error);
 			});
 		} else {
